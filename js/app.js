@@ -1,0 +1,3 @@
+$(function(){
+    console.log("działa");
+})
