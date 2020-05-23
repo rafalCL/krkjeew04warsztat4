@@ -11,3 +11,7 @@ h1 {
     font-size: smaller;
     display: none;
 }
+
+.delete-book-btn {
+    background-color: hotpink;
+}
