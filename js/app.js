@@ -16,11 +16,9 @@ $(function(){
     }
     
     function renderBookList(renderingPoint){
-        $.ajax({
-            url : "http://localhost:8282/books",
-            type : "GET",
-            dataType : "json",
-        }).done(function(booksArr){
+        var url = "http://localhost:8282/books";
+
+        function getBookListSuccess(booksArr){
             renderingPoint.empty();
             
             for(var i=0; i<booksArr.length; i++){
@@ -36,20 +34,17 @@ $(function(){
 
                 renderingPoint.append(titleDiv);
             }
-        }).fail(function(xhr, status, err){
-            console.log(xhr, status, err);
-        });
-    }
+        } // getBookListSuccess
+        
+        sendGenericRequest(url, "GET", undefined, getBookListSuccess);
+    } // renderBookList
     
     function handleTitleClick() {
         var thisTitle = $(this);
         var id = thisTitle.data("id");
+        var url = "http://localhost:8282/books/" + id;
 
-        $.ajax({
-            url : "http://localhost:8282/books/" + id,
-            type : "GET",
-            dataType : "json",
-        }).done(function(book){
+        function getBookSuccess(book){
             var descriptionDiv = thisTitle.find(".description");
             descriptionDiv.empty();
             
@@ -71,10 +66,10 @@ $(function(){
             descriptionDiv.append(isbnDiv);
             
             descriptionDiv.slideDown();
-        }).fail(function(xhr, status, err){
-            console.log(xhr, status, err);
-        });
-    }
+        } // getBookSuccess
+
+        sendGenericRequest(url, "GET", undefined, getBookSuccess);
+    } // handleTitleClick
     
     function handleAddBookSubmit(){
         var book = {
@@ -84,36 +79,38 @@ $(function(){
             type : this.elements.type.value,
             isbn : this.elements.isbn.value,
         }
+        
+        var url = "http://localhost:8282/books";
 
-        $.ajax({
-            url : "http://localhost:8282/books",
-            type : "POST",
-            data : JSON.stringify(book),
-            contentType : "application/json; charset=utf-8",
-            dataType : "json",
-        }).done(function(){
-            refreshBookList();
-        }).fail(function(xhr, status, err){
-            console.log(xhr, status, err);
-        });
+        sendGenericRequest(url, "POST", book, refreshBookList);
         
         return false;
-    }
+    } // handleAddBookSubmit
     
     function handleDelBtnClick(event){
         event.stopPropagation();
         
         var thisTitle = $(this).parent();
         var id = thisTitle.data("id");
+        var url = "http://localhost:8282/books/" + id;
 
+        sendGenericRequest(url, "DELETE", undefined, refreshBookList);
+    } // handleDelBtnClick
+    
+    function sendGenericRequest(url, type, data, successHandlerFn){
         $.ajax({
-            url : "http://localhost:8282/books/" + id,
-            type : "DELETE",
-        }).done(function(){
-            refreshBookList();
+            url : url,
+            type : type,
+            data : data === undefined ? "" : JSON.stringify(data),
+            contentType : "application/json; charset=utf-8",
+            dataType : "json",
+        }).done(function(dataReturnedByServer){
+            if(successHandlerFn !== undefined){
+                successHandlerFn(dataReturnedByServer);
+            }
         }).fail(function(xhr, status, err){
             console.log(xhr, status, err);
         });
-    }
+    } // sendGenericRequest
     
 }) // DOMContentLoaded
